@@ -335,8 +335,8 @@ namespace PlayerScripts
             if (Input.GetKeyUp(climbKey))
                 _wasClimbKeyPressed = !_wasClimbKeyPressed;
             
-            Move();
             InteractWithFloorType();
+            Move();
             //Debug.Log(jumpForce);
             bool isTouchingStuff = !IsGrounded && (IsTouchingWall || IsTouchingCeiling || IsAttachedToRope);
             if (!_isCoroutineRunning && ((_stamina  < maxStamina && IsGrounded) || isTouchingStuff))

@@ -54,6 +54,7 @@ namespace BaseScripts
         
         // Character private flags:
         private bool _wasTouchingDifferentFloor;
+        private bool _wasTouchingDifferentWall;
 
         [Header("Debug BaseCharacter:")] 
         public Vector3 resetPosition;
@@ -227,6 +228,7 @@ namespace BaseScripts
             if (_wallType == BaseWorld.WallType.Lava)
             {
                 Rigidbody.transform.localPosition = resetPosition;
+                _wasTouchingDifferentWall = true;
                 //Debug.Log("Lava");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -234,16 +236,19 @@ namespace BaseScripts
             {
                 Rigidbody.gravityScale = 0f;
                 movementSpeed = BaseWorld.World.honeySpeed;
+                _wasTouchingDifferentWall = true;
                 //Debug.Log("Honey");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
             else if (_wallType == BaseWorld.WallType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
             {
                 Rigidbody.gravityScale = BaseWorld.World.GetGravityScale() * BaseWorld.World.iceSpeed;
+                _wasTouchingDifferentWall = true;
                 //Debug.Log("Ice");
             }
             else if (_wallType == BaseWorld.WallType.Normal)
             {
+                _wasTouchingDifferentWall = false;
                 movementSpeed = _tempMovementSpeed;
                 Rigidbody.gravityScale = 0f;
                 //Debug.Log("Normal");
@@ -273,9 +278,10 @@ namespace BaseScripts
                 movementSpeed = BaseWorld.World.iceSpeed;
                 //Debug.Log("Ice");
             }
-            else if (_wasTouchingDifferentFloor && _floorType == BaseWorld.FloorType.Normal)
+            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && _floorType == BaseWorld.FloorType.Normal)
             {
                 _wasTouchingDifferentFloor = false;
+                _wasTouchingDifferentWall = false;
                 movementSpeed = _tempMovementSpeed;
                 //Debug.Log("Normal");
             }

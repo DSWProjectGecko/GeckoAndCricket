@@ -805,7 +805,7 @@ MonoBehaviour:
   debugMode: 1
   printDebugMessages: 1
   debugMessageType: 1
-  enableCheats: 0
+  enableCheats: 1
 --- !u!4 &385013174
 Transform:
   m_ObjectHideFlags: 0
