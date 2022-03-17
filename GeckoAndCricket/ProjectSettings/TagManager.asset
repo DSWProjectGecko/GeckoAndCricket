@@ -16,15 +16,15 @@ TagManager:
   - 
   - 
   - 
-  - Ground
-  - Wall
+  - NormalFloor
+  - NormalWall
   - Ceiling
-  - Lava
-  - Honey
-  - Ice
-  - 
-  - 
-  - 
+  - LavaFloor
+  - HoneyFloor
+  - IceFloor
+  - LavaWall
+  - HoneyWall
+  - IceWall
   - 
   - 
   - 
