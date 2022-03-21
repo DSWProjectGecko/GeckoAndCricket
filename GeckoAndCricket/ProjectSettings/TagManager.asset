@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Rope
   layers:
   - Default
   - TransparentFX
@@ -15,15 +16,15 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - NormalFloor
+  - NormalWall
+  - Ceiling
+  - LavaFloor
+  - HoneyFloor
+  - IceFloor
+  - LavaWall
+  - HoneyWall
+  - IceWall
   - 
   - 
   - 

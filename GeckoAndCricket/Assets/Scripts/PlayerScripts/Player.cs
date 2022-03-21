@@ -11,6 +11,7 @@ namespace PlayerScripts
         [Header("Player movement variables:")]
         public float wallJumpForce = 13f;
         public float wallJumpTime = 0.05f;
+        public float detachTimer = 1f;
         
         public bool doubleJump;
         
@@ -28,6 +29,9 @@ namespace PlayerScripts
         public float staminaDegradationValue = 0.5f;
         public int staminaDegradationTime = 1;
 
+        [Header("Player input:")] 
+        public KeyCode climbKey = KeyCode.X;
+
         // Private player variables:
         private float _stamina;
 
@@ -35,9 +39,9 @@ namespace PlayerScripts
         
         private bool _wasTouchingCeiling;
         private bool _wasTouchingWall;
+        private bool _wasClimbKeyPressed;
 
         private GameObject _disregard;
-        public float detachTimer = 1f;
         private GameObject disregard;
 
         #region Movement
@@ -46,21 +50,23 @@ namespace PlayerScripts
             float x = Input.GetAxis("Horizontal") * movementSpeed;
             float y = Rigidbody.velocity.y;
 
-            if (IsTouchingCeiling && !IsGrounded && Input.GetAxis("Vertical") >= 0f && _stamina > 0f)
+            if (IsTouchingCeiling && !IsGrounded && !Input.GetKeyUp(climbKey) && _stamina > 0f)
             {
                 Rigidbody.gravityScale = 0f;
                 _wasTouchingCeiling = true;
             }
             else if (_wasTouchingCeiling)
             {
+                _wasClimbKeyPressed = false;
                 _wasTouchingCeiling = false;
                 Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
             }
 
-            if (IsTouchingWall && !_isWallJumping)
+            if (IsTouchingWall && !_isWallJumping && _wasClimbKeyPressed)
             {
                 if (_stamina > 0f)
                 {
+                    InteractWithWallType();
                     y = Input.GetAxis("Vertical");
                     if (y > 0)
                         SetRotationZ(90f);
@@ -70,15 +76,19 @@ namespace PlayerScripts
                 }
                 else
                 {
+                    Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
                     SetRotationZ(-90f);
                     y = Mathf.Clamp(Rigidbody.velocity.y, -wallSlidingSpeed, float.MaxValue);
+                    _wasClimbKeyPressed = false;
                 }
                 _wasTouchingWall = true;
             }
             else if (_wasTouchingWall && !_isWallJumping)
             {
+                Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
                 SetRotationZ(0f);
                 _wasTouchingWall = false;
+                _wasClimbKeyPressed = false;
             }
             base.Move(ref x, ref y);
         }
@@ -90,7 +100,7 @@ namespace PlayerScripts
             Invoke(nameof(SetWallJumpToFalse), wallJumpTime);
             if (!_isWallJumping) return;
 
-            Rigidbody.gravityScale = BaseWorld.World.GetGravityScale() / 2;
+            //Rigidbody.gravityScale = BaseWorld.World.GetGravityScale() / 2;
             
             float direction = isFacingRight ? -1f : 1f;
             if (Input.GetAxis("Horizontal") != 0)
@@ -136,7 +146,8 @@ namespace PlayerScripts
             }
         }
 		
-        private void AttachToRope(Rigidbody2D ropeSeg) {
+        private void AttachToRope(Rigidbody2D ropeSeg) 
+        {
             Debug.Log(ropeSeg);
             ropeSeg.gameObject.GetComponent<RopeSegment>().isPlayerAttached = true;
             HingeJoint.connectedBody = ropeSeg;
@@ -145,7 +156,8 @@ namespace PlayerScripts
             attachedTo = ropeSeg.gameObject.transform.parent;
         }
 		
-        private void DetachFromRope() {
+        private void DetachFromRope() 
+        {
             HingeJoint.connectedBody.GetComponent<RopeSegment>().isPlayerAttached = false;
             HingeJoint.enabled = false;
             IsAttachedToRope = false;
@@ -163,7 +175,8 @@ namespace PlayerScripts
                     }
                 }
             }
-            else {
+            else 
+            {
                 if (actualRopeSegment.below != null)
                 {
                     newRopeSegment = actualRopeSegment.below;
@@ -233,7 +246,7 @@ namespace PlayerScripts
             }
         }
 		
-        void DetachRopeTimer() {
+        private void DetachRopeTimer() {
             if (!IsAttachedToRope && detachTimer>0f)
             {
                 detachTimer -= Time.deltaTime;
@@ -269,7 +282,9 @@ namespace PlayerScripts
                 //Debug.Log("Stamina + " + _stamina);
             }
 
-            while (_stamina > 0 && isUsingStamina)
+            while (_stamina > 0 && isUsingStamina && 
+                   (_wasTouchingWall && Input.GetAxis("Vertical") != 0 || 
+                    _wasTouchingCeiling && Input.GetAxis("Horizontal") != 0))
             {
                 yield return new WaitForSeconds(staminaDegradationTime);
                 _stamina -= staminaDegradationValue;
@@ -284,8 +299,8 @@ namespace PlayerScripts
         #region Unity
         #if DEBUG
         [Header("Debug:")]
-        public bool debugMode = true;
-        public bool printDebugMessages = true;
+        public bool debugMode;
+        public bool printDebugMessages;
         public DebugType debugMessageType;
         public bool enableCheats;
 
@@ -317,7 +332,10 @@ namespace PlayerScripts
                 _debug.PrintDebug(true);
             #endif
 
-            InteractWithSurface();
+            if (Input.GetKeyUp(climbKey))
+                _wasClimbKeyPressed = !_wasClimbKeyPressed;
+            
+            InteractWithFloorType();
             Move();
             //Debug.Log(jumpForce);
             bool isTouchingStuff = !IsGrounded && (IsTouchingWall || IsTouchingCeiling || IsAttachedToRope);

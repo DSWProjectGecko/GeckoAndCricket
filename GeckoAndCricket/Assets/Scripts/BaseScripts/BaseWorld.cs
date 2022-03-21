@@ -1,44 +1,8 @@
-using System.Collections.Generic;
+using BaseScripts.SurfaceTypes;
 using UnityEngine;
 
 namespace BaseScripts
-{
-    public readonly struct SurfaceTypes
-    {
-        public readonly int? Lava;
-        public readonly int? Honey;
-        public readonly int? Ice;
-
-        public SurfaceTypes(IEnumerable<LayerMask> surfaceLayers)
-        {
-            Lava = null;
-            Honey = null;
-            Ice = null;
-            
-            foreach (LayerMask layer in surfaceLayers)
-            {
-                int index = Mathc.GetExponent(layer);
-                switch (LayerMask.LayerToName(index))
-                {
-                    case "Lava": 
-                        Lava = layer; 
-                        break;
-                    case "Honey": 
-                        Honey = layer; 
-                        break;
-                    case "Ice": 
-                        Ice = layer; 
-                        break;
-                }
-            }
-        }
-
-        public IEnumerable<int?> GetSurfaceTypes()
-        {
-            return new [] {Lava, Honey, Ice};
-        }
-    }
-
+{ 
     public class BaseWorld : MonoBehaviour
     {
         [Header("World layers:")]
@@ -47,7 +11,8 @@ namespace BaseScripts
         public LayerMask ceilingLayer;
 
         [Header("Surface types:")] 
-        public LayerMask[] surfaceLayers;
+        public LayerMask[] floorLayers;
+        public LayerMask[] wallLayers;
         
         public float honeySpeed = 2.5f;
         public float iceSpeed = 10f;
@@ -57,7 +22,8 @@ namespace BaseScripts
         
         // Public:
         public static BaseWorld World;
-        public static SurfaceTypes SurfaceType;
+        public static BaseSurfaceTypes FloorType;
+        public static BaseSurfaceTypes WallType;
 
         // Private:
         private float _gravityScale;
@@ -73,7 +39,10 @@ namespace BaseScripts
             {
                 World = this;
             }
-            SurfaceType = new SurfaceTypes(surfaceLayers);
+
+            FloorType ??= new FloorTypes(floorLayers);
+            WallType ??= new WallTypes(wallLayers);
+            
         }
     }
 }

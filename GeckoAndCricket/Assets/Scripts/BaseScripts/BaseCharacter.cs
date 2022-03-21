@@ -21,6 +21,9 @@ namespace BaseScripts
         public float stompForce = 2f;
         public float pushForce = 7f;
         public int maxJumps = 1;
+        
+        // Character private movement fields:
+        private float _tempMovementSpeed;
 
         [Header("Character colliders:")] 
         public Transform groundCollider;
@@ -31,11 +34,12 @@ namespace BaseScripts
         public float ceilingCheckSize = 0.2f;
 
         // Character protected fields:
-        protected int? SurfaceType;
-        protected float TempMovementSpeed;
-
         protected Rigidbody2D Rigidbody;
         protected HingeJoint2D HingeJoint;
+
+        // Character private collision fields
+        private int _floorType;
+        private int _wallType;
 
         [Header("Character flags:")] 
         public bool isFacingRight = true;
@@ -45,10 +49,12 @@ namespace BaseScripts
         // Character protected flags:
         protected bool IsGrounded = true;
         protected bool IsTouchingWall;
-        protected bool IsTouchingCeiling = false;
-        protected bool IsAttachedToRope = false;
-
-        protected bool WasTouchingDifferentSurface;
+        protected bool IsTouchingCeiling;
+        protected bool IsAttachedToRope;
+        
+        // Character private flags:
+        private bool _wasTouchingDifferentFloor;
+        private bool _wasTouchingDifferentWall;
 
         [Header("Debug BaseCharacter:")] 
         public Vector3 resetPosition;
@@ -183,6 +189,107 @@ namespace BaseScripts
         }
         #endregion
         
+        #region Collisions
+        private bool CheckWallCollision()
+        {
+            foreach (int? type in BaseWorld.WallType.GetSurfaceTypes())
+            {
+                if (type == null)
+                    continue;
+
+                if (!Physics2D.OverlapCircle(wallCollider.position, wallCheckSize, (int) type)) 
+                    continue;
+                
+                _wallType = (int) type;
+                return true;
+            }
+            
+            return false;
+        }
+
+        private bool CheckFloorCollision()
+        {
+            foreach (int? type in BaseWorld.FloorType.GetSurfaceTypes())
+            {
+                if (type == null)
+                    continue;
+                if (!Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, (int) type))
+                    continue;
+                
+                _floorType = (int) type;
+                return true;
+            }
+
+            return false;
+        }
+        
+        protected int InteractWithWallType()
+        {
+            if (_wallType == BaseWorld.WallType.Lava)
+            {
+                Rigidbody.transform.localPosition = resetPosition;
+                _wasTouchingDifferentWall = true;
+                //Debug.Log("Lava");
+            }
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            else if (_wallType == BaseWorld.WallType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            {
+                Rigidbody.gravityScale = 0f;
+                movementSpeed = BaseWorld.World.honeySpeed;
+                _wasTouchingDifferentWall = true;
+                //Debug.Log("Honey");
+            }
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            else if (_wallType == BaseWorld.WallType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
+            {
+                Rigidbody.gravityScale = BaseWorld.World.GetGravityScale() * BaseWorld.World.iceSpeed;
+                _wasTouchingDifferentWall = true;
+                //Debug.Log("Ice");
+            }
+            else if (_wallType == BaseWorld.WallType.Normal)
+            {
+                _wasTouchingDifferentWall = false;
+                movementSpeed = _tempMovementSpeed;
+                Rigidbody.gravityScale = 0f;
+                //Debug.Log("Normal");
+            }
+            
+            return _wallType;
+        }
+        
+        protected int InteractWithFloorType()
+        {
+            if (_floorType == BaseWorld.FloorType.Lava)
+            {
+                Rigidbody.transform.localPosition = resetPosition;
+                //Debug.Log("Lava");
+            }
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            else if (_floorType == BaseWorld.FloorType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            {
+                _wasTouchingDifferentFloor = true;
+                movementSpeed = BaseWorld.World.honeySpeed;
+                //Debug.Log("Honey");
+            }
+            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            else if (_floorType == BaseWorld.FloorType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
+            {
+                _wasTouchingDifferentFloor = true;
+                movementSpeed = BaseWorld.World.iceSpeed;
+                //Debug.Log("Ice");
+            }
+            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && _floorType == BaseWorld.FloorType.Normal)
+            {
+                _wasTouchingDifferentFloor = false;
+                _wasTouchingDifferentWall = false;
+                movementSpeed = _tempMovementSpeed;
+                //Debug.Log("Normal");
+            }
+            
+            return _floorType;
+        }
+        #endregion
+        
         #region Movement
         /// <summary>
         /// Moves character
@@ -221,37 +328,6 @@ namespace BaseScripts
         protected void Stomp() {
             Vector2 stomp = new Vector2(0f, stompForce);
             Rigidbody.velocity -= stomp;
-        }
-
-        protected void InteractWithSurface()
-        {
-            if (SurfaceType == BaseWorld.SurfaceType.Lava)
-            {
-                Rigidbody.transform.localPosition = resetPosition;
-                //Debug.Log("Lava");
-            }
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (SurfaceType == BaseWorld.SurfaceType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
-            {
-                WasTouchingDifferentSurface = true;
-                movementSpeed = BaseWorld.World.honeySpeed;
-                IsGrounded = true;
-               //Debug.Log("Honey");
-            }
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (SurfaceType == BaseWorld.SurfaceType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
-            {
-                WasTouchingDifferentSurface = true;
-                movementSpeed = BaseWorld.World.iceSpeed;
-                IsGrounded = true;
-                Debug.Log("Ice");
-            }
-            else if (WasTouchingDifferentSurface && SurfaceType == 0)
-            {
-                WasTouchingDifferentSurface = false;
-                movementSpeed = TempMovementSpeed;
-                //Debug.Log("Normal");
-            }
         }
 
         #endregion
@@ -337,33 +413,20 @@ namespace BaseScripts
         #endregion
 
         #region Unity
+
         private void Awake()
         {
             Rigidbody = GetComponent<Rigidbody2D>();
             HingeJoint = GetComponent<HingeJoint2D>();
-            TempMovementSpeed = movementSpeed;
+            _tempMovementSpeed = movementSpeed;
         }
 
         private void FixedUpdate()
         {
-            //TODO: Implement collision detection.
-            IsGrounded = Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, BaseWorld.World.groundLayer);
-            IsTouchingWall = Physics2D.OverlapCircle(wallCollider.position, wallCheckSize, BaseWorld.World.wallLayer);
+            IsGrounded = CheckFloorCollision();
+            IsTouchingWall = CheckWallCollision();
             IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
-
-            foreach (int? type in BaseWorld.SurfaceType.GetSurfaceTypes())
-            {
-                if (type == null)
-                    continue;
-                
-                if (Physics2D.OverlapCircle(groundCollider.position, ceilingCheckSize, (int) type) 
-                    ||Physics2D.OverlapCircle(wallCollider.position, wallCheckSize, (int) type))
-                {
-                    SurfaceType = (int) type;
-                    break;
-                }
-                SurfaceType = 0;
-            }
+            
         }
         #endregion
     }
