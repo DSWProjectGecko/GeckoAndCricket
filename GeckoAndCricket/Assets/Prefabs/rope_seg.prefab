@@ -166,9 +166,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1302609681915990135}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0a04562c25da5b449131d0e4890a3a0, type: 3}
+  m_Script: {fileID: 11500000, guid: a823fbb609e450243b5ede9336d2d9ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Above: {fileID: 0}
-  Below: {fileID: 0}
+  above: {fileID: 0}
+  below: {fileID: 0}
   isPlayerAttached: 0

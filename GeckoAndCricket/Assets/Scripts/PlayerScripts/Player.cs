@@ -28,6 +28,8 @@ namespace PlayerScripts
         // Degradation:
         public float staminaDegradationValue = 0.5f;
         public int staminaDegradationTime = 1;
+        // Roll
+        public bool isRolling;
 
         [Header("Player input:")] 
         public KeyCode climbKey = KeyCode.X;
@@ -137,6 +139,18 @@ namespace PlayerScripts
                 doubleJump = false;
             }
         }
+
+        private void Roll() {
+            if ((Rigidbody.velocity.x > 0 || Rigidbody.velocity.x < 0) && IsGrounded && Input.GetKeyDown("s"))
+            {
+                isRolling = true;
+                this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+            }
+            else if(!isRolling && (this.gameObject.GetComponent<BoxCollider2D>().enabled == false))
+            {
+                    this.gameObject.GetComponent<BoxCollider2D>().enabled = true;
+            }
+        }
 		
         private void Stomp(bool isTouchingStuff) 
         {
@@ -211,6 +225,13 @@ namespace PlayerScripts
                         }
                     }
                 }
+            }
+        }
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            if (isRolling && collision.gameObject.CompareTag("Roll"))
+            {
+                isRolling = false;
             }
         }
 
@@ -344,9 +365,9 @@ namespace PlayerScripts
             Jump();
             Stomp(isTouchingStuff);
             Swing();
+            Roll();
             DetachRopeTimer();
         }
-
         #endregion
     }
 }
