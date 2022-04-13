@@ -240,9 +240,9 @@ namespace BaseScripts
                 //Debug.Log("Honey");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (_wallType == BaseWorld.WallType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
+            else if (_wallType == BaseWorld.WallType.Ice && Rigidbody.gravityScale != 0f)
             {
-                Rigidbody.gravityScale = BaseWorld.World.GetGravityScale() * BaseWorld.World.iceSpeed;
+                Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
                 _wasTouchingDifferentWall = true;
                 //Debug.Log("Ice");
             }
@@ -308,23 +308,41 @@ namespace BaseScripts
         }
 
         /// <summary>
-        /// Moves character
+        /// Moves character.
         /// </summary>
         /// <param name="x">Argument takes a reference to float x value.</param>
         /// <param name="y">Argument takes a reference to float y value.</param>
         protected void Move(ref float x, ref float y)
         {
-                Rigidbody.velocity = new Vector2(x, y);
+            Rigidbody.velocity = new Vector2(x, y);
             if ((x > 0 && !isFacingRight) || (x < 0 && isFacingRight))
                 isFacingRight = !FlipHorizontally();
             if ((IsTouchingCeiling && !IsGrounded && !isFlippedVertically)||(!IsTouchingCeiling && isFlippedVertically))
                 FlipVertically();
         }
+
+        /// <summary>
+        /// Moves character by adding x as force.
+        /// </summary>
+        /// <param name="x">Argument takes a reference to float x value.</param>
+        /// <param name="y">Argument takes a reference to float y value.</param>
+        /// <param name="direction">Argument takes a reference to float direction value</param>
+        protected void Move(ref float x, ref float y, float direction)
+        {
+            Rigidbody.AddForce(x * Vector2.right);
+            Rigidbody.velocity = new Vector2(Rigidbody.velocity.x, y);
+            if ((direction > 0.01f && !isFacingRight && isFlippedHorizontally) || (direction < 0f && isFacingRight && !isFlippedHorizontally))
+                isFacingRight = !FlipHorizontally();
+            if ((IsTouchingCeiling && !IsGrounded && !isFlippedVertically)||(!IsTouchingCeiling && isFlippedVertically))
+                FlipVertically();
+        }
+        
         protected void Jump()
         {
             Vector2 jump = new Vector2(0f, jumpForce);
             Rigidbody.velocity += jump;
         }
+        
         protected void Stomp() {
             Vector2 stomp = new Vector2(0f, stompForce);
             Rigidbody.velocity -= stomp;
@@ -409,6 +427,12 @@ namespace BaseScripts
             fixed (bool* ptr = &IsAttachedToRope)
                 return ptr;
         }
+
+        public unsafe float* GetMovementSpeedPointer()
+        {
+           fixed (float* ptr = &movementSpeed)
+                return ptr;
+        }
         #endif
         #endregion
 
@@ -421,7 +445,7 @@ namespace BaseScripts
             _tempMovementSpeed = movementSpeed;
         }
 
-        private void FixedUpdate()
+        protected void FixedUpdate()
         {
             IsGrounded = CheckFloorCollision();
             IsTouchingWall = CheckWallCollision();
