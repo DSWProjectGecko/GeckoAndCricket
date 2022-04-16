@@ -6,8 +6,6 @@ namespace BaseScripts
     public class BaseWorld : MonoBehaviour
     {
         [Header("World layers:")]
-        public LayerMask groundLayer;
-        public LayerMask wallLayer;
         public LayerMask ceilingLayer;
 
         [Header("Surface types:")] 
