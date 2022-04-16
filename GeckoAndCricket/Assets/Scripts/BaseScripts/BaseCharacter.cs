@@ -340,7 +340,7 @@ namespace BaseScripts
         protected void Jump()
         {
             Vector2 jump = new Vector2(0f, jumpForce);
-            Rigidbody.velocity += jump;
+            Rigidbody.velocity = jump;
         }
         
         protected void Stomp() {
