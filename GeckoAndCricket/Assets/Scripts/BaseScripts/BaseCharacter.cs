@@ -41,6 +41,11 @@ namespace BaseScripts
         private int _floorType;
         private int _wallType;
 
+        [Header("Colliders check:")]
+        public bool needGroundCollider;
+        public bool needWallCollider;
+        public bool needCeilingCollider;
+
         [Header("Character flags:")] 
         public bool isFacingRight = true;
         public bool isFlippedVertically;
@@ -58,6 +63,7 @@ namespace BaseScripts
 
         [Header("Debug BaseCharacter:")] 
         public Vector3 resetPosition;
+
 #pragma warning restore 8618
 
         #region Sprite Flipping
@@ -423,9 +429,18 @@ namespace BaseScripts
 
         private void FixedUpdate()
         {
-            IsGrounded = CheckFloorCollision();
-            IsTouchingWall = CheckWallCollision();
-            IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
+            if (needGroundCollider)
+            {
+                IsGrounded = CheckFloorCollision();
+            }
+            if (needWallCollider)
+            {
+                IsTouchingWall = CheckWallCollision();
+            }
+            if (needCeilingCollider)
+            {
+                IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
+            }
             
         }
         #endregion
