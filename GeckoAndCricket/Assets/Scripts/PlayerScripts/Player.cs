@@ -56,6 +56,14 @@ namespace PlayerScripts
         private GameObject _disregard;
         private GameObject disregard;
 
+        #region Getters
+
+        public bool GetIsTouchingCeiling => IsTouchingCeiling;
+        public bool GetIsTouchingWall => IsTouchingWall;
+        public bool GetIsGrounded => IsGrounded;
+
+        #endregion
+
         #region Movement
         private void Move()
         {
@@ -441,6 +449,11 @@ namespace PlayerScripts
         #endregion
 
         #region Unity
+        private new void Awake()
+        {
+            base.Awake();
+            BaseWorld.Player = gameObject;
+        }
         private void Start()
         {
             #if DEBUG

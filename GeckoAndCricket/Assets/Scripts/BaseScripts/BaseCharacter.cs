@@ -60,6 +60,13 @@ namespace BaseScripts
         public Vector3 resetPosition;
 #pragma warning restore 8618
 
+        #region Getters and Setters
+        public bool IsGroundedFlag { get => IsGrounded; set => IsGrounded = value; }
+        public bool IsTouchingWallFlag { get => IsTouchingWall; set => IsTouchingWall = value; }
+        public bool IsTouchingCeilingFlag { get => IsTouchingCeiling; set => IsTouchingCeiling = value; }
+
+        #endregion
+
         #region Sprite Flipping
         /// <summary>
         /// Flips character sprite horizontally.
@@ -285,7 +292,7 @@ namespace BaseScripts
                 movementSpeed = _tempMovementSpeed;
                 //Debug.Log("Normal");
             }
-            
+
             return _floorType;
         }
         #endregion
@@ -438,7 +445,7 @@ namespace BaseScripts
 
         #region Unity
 
-        private void Awake()
+        protected void Awake()
         {
             Rigidbody = GetComponent<Rigidbody2D>();
             HingeJoint = GetComponent<HingeJoint2D>();
@@ -447,10 +454,12 @@ namespace BaseScripts
 
         protected void FixedUpdate()
         {
-            IsGrounded = CheckFloorCollision();
-            IsTouchingWall = CheckWallCollision();
-            IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
-            
+            if (groundCollider != null)
+                IsGrounded = CheckFloorCollision();
+            if (wallCollider != null)
+                IsTouchingWall = CheckWallCollision();
+            if (ceilingCollider != null)
+                IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
         }
         #endregion
     }

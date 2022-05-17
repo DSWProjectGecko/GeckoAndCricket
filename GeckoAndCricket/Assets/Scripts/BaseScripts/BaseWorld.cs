@@ -22,6 +22,7 @@ namespace BaseScripts
         public static BaseWorld World;
         public static BaseSurfaceTypes FloorType;
         public static BaseSurfaceTypes WallType;
+        public static GameObject Player;
 
         // Private:
         private float _gravityScale;

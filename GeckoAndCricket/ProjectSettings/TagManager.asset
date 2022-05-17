@@ -15,7 +15,7 @@ TagManager:
   - Water
   - UI
   - 
-  - 
+  - Player
   - 
   - 
   - NormalFloor
@@ -39,7 +39,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - TurtleFloor
   m_SortingLayers:
   - name: Default
     uniqueID: 0
