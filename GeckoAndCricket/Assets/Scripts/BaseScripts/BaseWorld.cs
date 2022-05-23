@@ -6,8 +6,6 @@ namespace BaseScripts
     public class BaseWorld : MonoBehaviour
     {
         [Header("World layers:")]
-        public LayerMask groundLayer;
-        public LayerMask wallLayer;
         public LayerMask ceilingLayer;
 
         [Header("Surface types:")] 
@@ -24,6 +22,7 @@ namespace BaseScripts
         public static BaseWorld World;
         public static BaseSurfaceTypes FloorType;
         public static BaseSurfaceTypes WallType;
+        public static GameObject Player;
 
         // Private:
         private float _gravityScale;
