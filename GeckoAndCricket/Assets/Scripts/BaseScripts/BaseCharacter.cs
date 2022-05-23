@@ -52,7 +52,7 @@ namespace BaseScripts
         public bool isFlippedHorizontally;
 
         // Character protected flags:
-        protected bool IsGrounded = true;
+        public bool IsGrounded = true;
         protected bool IsTouchingWall;
         protected bool IsTouchingCeiling;
         protected bool IsAttachedToRope;
@@ -444,5 +444,8 @@ namespace BaseScripts
             
         }
         #endregion
+        public int GetFloorType() {
+            return _floorType;
+        }
     }
 }

@@ -6,7 +6,7 @@ using BaseScripts;
 public class SnakeAI : BaseCharacter
 {
     private bool mustPatrol;
-    private bool mustTurn;
+    public bool mustTurn;
     private bool mustAttack;
     public bool seePlayer;
 
