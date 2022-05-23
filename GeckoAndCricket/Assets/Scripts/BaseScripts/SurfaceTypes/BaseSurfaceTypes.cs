@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace BaseScripts.SurfaceTypes
-{ 
+{
     public abstract class BaseSurfaceTypes
     {
         public int? Lava;

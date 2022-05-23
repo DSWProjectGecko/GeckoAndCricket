@@ -1,10 +1,7 @@
 ﻿using System.Collections;
 using BaseScripts;
+using DebugUtility;
 using UnityEngine;
-using UnityEngine.UI;
-#if DEBUG 
-using DebugUtility; 
-#endif
 
 namespace PlayerScripts
 {
@@ -15,13 +12,6 @@ namespace PlayerScripts
         public float wallJumpForce = 13f;
         public float wallJumpTime = 0.05f;
         public float detachTimer = 1f;
-
-        public float accelerationValue = 1.5f;
-
-        public float decelerationValue = 0.5f;
-        
-        public float stoppingForce = 1f;
-        public float turnForce = 1f;
         
         public bool doubleJump;
         
@@ -56,21 +46,11 @@ namespace PlayerScripts
         private GameObject _disregard;
         private GameObject disregard;
 
-        #region Getters
-
-        public bool GetIsTouchingCeiling => IsTouchingCeiling;
-        public bool GetIsTouchingWall => IsTouchingWall;
-        public bool GetIsGrounded => IsGrounded;
-
-        #endregion
-
         #region Movement
         private void Move()
         {
-            Vector2 velocity = Rigidbody.velocity;
-            float xInput = Input.GetAxis("Horizontal");
-            float x = xInput * movementSpeed; // 5f
-            float y = velocity.y;
+            float x = Input.GetAxis("Horizontal") * movementSpeed;
+            float y = Rigidbody.velocity.y;
 
             if (IsTouchingCeiling && !IsGrounded && !Input.GetKeyUp(climbKey) && _stamina > 0f)
             {
@@ -112,37 +92,7 @@ namespace PlayerScripts
                 _wasTouchingWall = false;
                 _wasClimbKeyPressed = false;
             }
-            
-            //if (Input.GetAxis("Horizontal") != 0f && velocity.x < )
-            float xDiff = x - velocity.x; // min 5f - 0f, max 5f - 20f or -5f - 0f, max -5f + 20f
-            float xAcceleration = (Mathf.Abs(x) > 0.01f) ? accelerationValue : decelerationValue;
-
-            if ((velocity.x > x && x > 0.01f) || (velocity.x < x && x < -0.01f))
-                xAcceleration = 0f;
-
-            float velocityForce;
-            if (Mathf.Abs(x) < 0.01f)
-                velocityForce = stoppingForce;
-            else if (Mathf.Abs(velocity.x) > 0f && Mathf.Sign(x) != Mathf.Sign(velocity.x))
-                velocityForce = turnForce;
-            else
-                velocityForce = xAcceleration;
-
-            x = Mathf.Pow(Mathf.Abs(xDiff) * xAcceleration, velocityForce) * Mathf.Sign(x);
-            x = Mathf.Lerp(velocity.x, x, 1);
-            
-            base.Move(ref x, ref y, xInput);
-            
-            #if DEBUG
-            if (_debug == null && debugMessageType == DebugType.Movement)
-                    InitializeDebug();
-
-            _accelerationValue = xAcceleration;
-            _currentSpeedValue= velocity.x;
-            _velocityForceValue = velocityForce;
-            _xValue = x;
-            _speedDifferenceValue = xDiff;
-            #endif
+            base.Move(ref x, ref y);
         }
 
         private void WallJump()
@@ -228,16 +178,13 @@ namespace PlayerScripts
             HingeJoint.connectedBody = null;
         }
 		
-        private void SlideOnRope(int direction) 
-        {
+        private void SlideOnRope(int direction) {
             RopeSegment actualRopeSegment = HingeJoint.connectedBody.gameObject.GetComponent<RopeSegment>();
             GameObject newRopeSegment = null;
             if (direction > 0)
             {
-                if (actualRopeSegment.above != null) 
-                {
-                    if (actualRopeSegment.above.gameObject.GetComponent<RopeSegment>() != null) 
-                    {
+                if (actualRopeSegment.above != null) {
+                    if (actualRopeSegment.above.gameObject.GetComponent<RopeSegment>() != null) {
                         newRopeSegment = actualRopeSegment.above;
                     }
                 }
@@ -249,8 +196,7 @@ namespace PlayerScripts
                     newRopeSegment = actualRopeSegment.below;
                 }
             }
-            if (newRopeSegment != null)
-            {
+            if (newRopeSegment != null){
                 transform.position = newRopeSegment.transform.position;
                 actualRopeSegment.isPlayerAttached = false;
                 newRopeSegment.GetComponent<RopeSegment>().isPlayerAttached = true;
@@ -366,98 +312,32 @@ namespace PlayerScripts
             }
             _isCoroutineRunning = false;
         }
-
-        #endregion
-
-        #region Debug
-        #if DEBUG
-        [Header("Debug:")]
-        public bool debugMode;
-        public bool writeToFile;
-        public int frequencyOfWriting = 1;
-        public bool printDebugMessages;
-        public DebugType debugMessageType;
-        public bool enableCheats;
-        public Text fpsCounter;
-        public bool showFPS = true;
-
-        private void InitializeDebug()
-        {
-            _debug = new DebugUtility.DebugUtility(this, debugMessageType, writeToFile);
-            if (enableCheats)
-                _debug.UseCheats();
-
-            if (showFPS)
-                _debug.ShowFPS(ref fpsCounter);
-        }
-
         
-        // Movement:
-        private float _accelerationValue;
-        public unsafe float* AccelerationValue
-        {
-            get
-            {
-                fixed (float* ptr = &_accelerationValue)
-                    return ptr;
-            }
-        }
-
-        private float _speedDifferenceValue;
-        public unsafe float* SpeedDifferenceValue
-        {
-            get
-            {
-                fixed (float* ptr = &_speedDifferenceValue)
-                    return ptr;
-            }
-        }
-
-        private float _currentSpeedValue;
-        public unsafe float* CurrentSpeedValue
-        { 
-            get
-            {
-                fixed (float* ptr = &_currentSpeedValue)
-                    return ptr;
-            }
-        }
-
-        private float _velocityForceValue;
-        public unsafe float* VelocityForceValue
-        {
-            get
-            {
-                fixed (float* ptr = &_velocityForceValue)
-                    return ptr;
-            }
-        }
-
-        private float _xValue;
-        public unsafe float* XValue
-        {
-            get
-            {
-                fixed (float* ptr = &_xValue)
-                    return ptr;
-            }
-        }
-
-        private DebugUtility.DebugUtility _debug;
-        #endif
+        
         #endregion
 
         #region Unity
-        private new void Awake()
-        {
-            base.Awake();
-            BaseWorld.Player = gameObject;
-        }
+        #if DEBUG
+        [Header("Debug:")]
+        public bool debugMode;
+        public bool printDebugMessages;
+        public DebugType debugMessageType;
+        public bool enableCheats;
+
+        private DebugUtility.DebugUtility _debug;
+        #endif
+
         private void Start()
         {
             #if DEBUG
-            if (debugMode && debugMessageType != DebugType.Movement)
-                InitializeDebug();
+            if (debugMode)
+            {
+                _debug = new DebugUtility.DebugUtility(this, debugMessageType);
+                if (enableCheats)
+                {
+                    _debug.UseCheats();
+                }
+            }
             #endif
             
             // Ustawia grawitację świata na taką jaką ma gracz.
@@ -467,11 +347,16 @@ namespace PlayerScripts
 
         private void Update()
         {
+            #if DEBUG
+            if (debugMode && printDebugMessages)
+                _debug.PrintDebug(true);
+            #endif
+
             if (Input.GetKeyUp(climbKey))
                 _wasClimbKeyPressed = !_wasClimbKeyPressed;
             
             InteractWithFloorType();
-            
+            Move();
             //Debug.Log(jumpForce);
             bool isTouchingStuff = !IsGrounded && (IsTouchingWall || IsTouchingCeiling || IsAttachedToRope);
             if (!_isCoroutineRunning && ((_stamina  < maxStamina && IsGrounded) || isTouchingStuff))
@@ -481,23 +366,6 @@ namespace PlayerScripts
             Swing();
             Roll();
             DetachRopeTimer();
-            
-            #if DEBUG
-            if (showFPS)
-                _debug.PrintFPS();
-            if (debugMode && printDebugMessages)
-                _debug.PrintDebug(true);
-            if (writeToFile)
-                _debug.WriteToFile(frequencyOfWriting);
-            if (Input.GetKeyDown(KeyCode.F1))
-                _debug.SaveFile();
-            #endif
-        }
-
-        private new void FixedUpdate()
-        {
-            base.FixedUpdate();
-            Move();
         }
         #endregion
     }
