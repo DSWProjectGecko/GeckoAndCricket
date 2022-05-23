@@ -12,6 +12,7 @@ public class SnakeAI : BaseCharacter
 
     [SerializeField] GameObject distancePoint;
     [SerializeField] Collider2D visionRange;
+    public LayerMask groundLayer;
     //Roboczy timer na czas braku animacji do ataku
     static float Timer=2f;
     float currentTimer=Timer;
@@ -20,15 +21,13 @@ public class SnakeAI : BaseCharacter
     void Start()
     {
         mustPatrol = true;
-        needGroundCollider = needWallCollider = true;
-        needCeilingCollider = false;
         seePlayer = false;
         mustAttack = false;
     }
     private void FixedUpdate()
     {
         if (mustPatrol) {
-            mustTurn = !Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, BaseWorld.World.groundLayer);
+            mustTurn = !Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, groundLayer);
         }
     }
     void Update()

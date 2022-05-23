@@ -463,7 +463,6 @@ namespace PlayerScripts
             // Ustawia grawitację świata na taką jaką ma gracz.
             BaseWorld.World.GetGravityScale() = Rigidbody.gravityScale;
             _stamina = maxStamina;
-            needGroundCollider = needCeilingCollider = needWallCollider = true;
         }
 
         private void Update()

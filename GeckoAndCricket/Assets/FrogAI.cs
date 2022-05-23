@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using BaseScripts;
+using BaseScripts.SurfaceTypes;
 
 public class FrogAI : BaseCharacter
 {
@@ -11,13 +12,11 @@ public class FrogAI : BaseCharacter
     void Start()
     {
         mustPatrol = true;
-        needGroundCollider = needWallCollider = true;
-        needCeilingCollider = false;
     }
     // Update is called once per frame
     void Update()
     {
-        if (IsTouchingWall && IsGrounded || GetFloorType() == BaseWorld.FloorType.Lava)
+        if (IsTouchingWall && IsGrounded || InteractWithFloorType() == BaseWorld.FloorType.Lava)
         {
             Flip();
         }

@@ -116,16 +116,17 @@ MonoBehaviour:
   wallCheckSize: 0.6
   ceilingCollider: {fileID: 0}
   ceilingCheckSize: 0.2
-  needGroundCollider: 0
-  needWallCollider: 0
-  needCeilingCollider: 0
   isFacingRight: 1
   isFlippedVertically: 0
   isFlippedHorizontally: 0
   resetPosition: {x: 0, y: 0, z: 0}
+  mustTurn: 0
   seePlayer: 0
   distancePoint: {fileID: 3915742182392160775}
   visionRange: {fileID: 3915742182377365374}
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!50 &3915742182071656754
 Rigidbody2D:
   serializedVersion: 4
@@ -159,12 +160,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b32f0c30c78fda54a9b0a4fd060bebde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 1024
-  wallLayer:
-    serializedVersion: 2
-    m_Bits: 2048
   ceilingLayer:
     serializedVersion: 2
     m_Bits: 0
