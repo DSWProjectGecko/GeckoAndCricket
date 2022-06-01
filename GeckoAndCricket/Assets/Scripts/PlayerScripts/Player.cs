@@ -264,7 +264,6 @@ namespace PlayerScripts
             {
                 if (attachedTo != collision.gameObject.transform.parent)
                 {
-                    Debug.Log("Pierwszy if");
                     if (_disregard == null || collision.gameObject.transform.parent.gameObject != _disregard)
                     {
                         if (!IsAttachedToRope && collision.gameObject.tag == "Rope" && detachTimer <= 0f)
