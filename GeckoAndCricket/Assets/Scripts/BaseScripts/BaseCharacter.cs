@@ -230,7 +230,7 @@ namespace BaseScripts
             return false;
         }
         
-        protected int InteractWithWallType()
+        public int InteractWithWallType()
         {
             if (_wallType == BaseWorld.WallType.Lava)
             {
@@ -264,7 +264,7 @@ namespace BaseScripts
             return _wallType;
         }
         
-        protected int InteractWithFloorType()
+        public int InteractWithFloorType()
         {
             if (_floorType == BaseWorld.FloorType.Lava)
             {
@@ -295,6 +295,20 @@ namespace BaseScripts
 
             return _floorType;
         }
+        
+        /// <summary>
+        /// Checks if object is touching a wall and a floor and a ceiling and sets appropriate flags.
+        /// </summary>
+        public void CheckCollision()
+        {
+            if (groundCollider != null)
+                IsGrounded = CheckFloorCollision();
+            if (wallCollider != null)
+                IsTouchingWall = CheckWallCollision();
+            if (ceilingCollider != null)
+                IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
+        }
+        
         #endregion
         
         #region Movement
@@ -302,7 +316,7 @@ namespace BaseScripts
         /// Moves character
         /// </summary>
         /// <param name="direction">Argument takes a reference to Vector2 object.</param>
-        protected void Move(ref Vector2 direction)
+        public void Move(ref Vector2 direction)
         {
             if (!IsAttachedToRope)
             {
@@ -319,7 +333,7 @@ namespace BaseScripts
         /// </summary>
         /// <param name="x">Argument takes a reference to float x value.</param>
         /// <param name="y">Argument takes a reference to float y value.</param>
-        protected void Move(ref float x, ref float y)
+        public void Move(ref float x, ref float y)
         {
             Rigidbody.velocity = new Vector2(x, y);
             if ((x > 0 && !isFacingRight) || (x < 0 && isFacingRight))
@@ -334,7 +348,7 @@ namespace BaseScripts
         /// <param name="x">Argument takes a reference to float x value.</param>
         /// <param name="y">Argument takes a reference to float y value.</param>
         /// <param name="direction">Argument takes a reference to float direction value</param>
-        protected void Move(ref float x, ref float y, float direction)
+        public void Move(ref float x, ref float y, float direction)
         {
             Rigidbody.AddForce(x * Vector2.right);
             Rigidbody.velocity = new Vector2(Rigidbody.velocity.x, y);
@@ -344,13 +358,14 @@ namespace BaseScripts
                 FlipVertically();
         }
         
-        protected void Jump()
+        public void Jump()
         {
             Vector2 jump = new Vector2(0f, jumpForce);
             Rigidbody.velocity = jump;
         }
         
-        protected void Stomp() {
+        public void Stomp() 
+        {
             Vector2 stomp = new Vector2(0f, stompForce);
             Rigidbody.velocity -= stomp;
         }
@@ -454,12 +469,7 @@ namespace BaseScripts
 
         protected void FixedUpdate()
         {
-            if (groundCollider != null)
-                IsGrounded = CheckFloorCollision();
-            if (wallCollider != null)
-                IsTouchingWall = CheckWallCollision();
-            if (ceilingCollider != null)
-                IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
+            CheckCollision();
         }
         #endregion
     }
