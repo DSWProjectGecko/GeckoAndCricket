@@ -7,11 +7,13 @@ public class Rope : MonoBehaviour
     public Rigidbody2D hook;
     public GameObject prefSeg;
     public int numLinks = 5;
-    void Start()
+
+    private void Start()
     {
         GenerateRope();   
     }
-    void GenerateRope()
+
+    private void GenerateRope()
     {
         Rigidbody2D prevRb = hook;
         for (int i = 0; i < numLinks; i++) {

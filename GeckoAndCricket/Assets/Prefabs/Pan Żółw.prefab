@@ -175,10 +175,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6950943443116633087}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b6905652b3e0a1f4186a3dfcaeba6657, type: 3}
+  m_Script: {fileID: 11500000, guid: 0eaf82557accf9949a037c3736db7e78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  body: {fileID: 4169493523446591831}
+  body: {fileID: 0}
   health: 100
   movementSpeed: 5
   wallSlidingSpeed: 4
@@ -186,20 +186,19 @@ MonoBehaviour:
   stompForce: 2
   pushForce: 7
   maxJumps: 1
-  groundCollider: {fileID: 4929478925877804619}
+  groundCollider: {fileID: 0}
   groundCheckSize: 0.2
   wallCollider: {fileID: 0}
   wallCheckSize: 0.6
-  ceilingCollider: {fileID: 4548372047628475978}
+  ceilingCollider: {fileID: 0}
   ceilingCheckSize: 0.2
   isFacingRight: 1
   isFlippedVertically: 0
   isFlippedHorizontally: 0
   resetPosition: {x: 0, y: 0, z: 0}
-  playerLaunchForce: 2
-  jumpsToFlip: 2
-  bottomCollider: {fileID: 878316751910020948}
-  topCollider: {fileID: 0}
+  JumpsToFlip: 2
+  BottomCollider: {fileID: 0}
+  TopCollider: {fileID: 0}
 --- !u!61 &2401141083943968207
 BoxCollider2D:
   m_ObjectHideFlags: 0

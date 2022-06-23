@@ -6,7 +6,8 @@ public class RopeSegment : MonoBehaviour
 {
     public GameObject above, below;
     public bool isPlayerAttached;
-    void Start()
+
+    private void Start()
     {
         above = GetComponent<HingeJoint2D>().connectedBody.gameObject;
         RopeSegment aboveSeg = above.GetComponent<RopeSegment>();
