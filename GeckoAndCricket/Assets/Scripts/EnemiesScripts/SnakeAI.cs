@@ -5,6 +5,23 @@ namespace EnemiesScripts
 {
     public class SnakeAI : BaseCharacter
     {
+        // Public variables:
+        [SerializeField] 
+        public Collider2D visionRange;
+        
+        public LayerMask groundLayer;
+        
+        // Private variables:
+        [SerializeField] 
+        private GameObject _distancePoint;
+        
+        //Roboczy timer na czas braku animacji do ataku
+        private const float Timer = 2f;
+        private const float RecoveryTimer = 1f;
+        
+        private float _currentTimer = Timer;
+        private float _currentRecoveryTimer = RecoveryTimer;
+        
         // Public flags:
         public bool seePlayer;
         public bool mustTurn;
@@ -12,16 +29,6 @@ namespace EnemiesScripts
         // Protected flags:
         protected bool mustPatrol;
         protected bool mustAttack;
-        
-
-        [SerializeField] GameObject distancePoint;
-        [SerializeField] public Collider2D visionRange;
-        public LayerMask groundLayer;
-        //Roboczy timer na czas braku animacji do ataku
-        static float Timer=2f;
-        float currentTimer=Timer;
-        static float recoveryTimer = 1f;
-        float currentRecoveryTimer = recoveryTimer;
 
         #region AI
         protected void Patrol() 
@@ -44,13 +51,13 @@ namespace EnemiesScripts
         protected void Attack()
         {
             //Roboczy atak do zmiany potem
-            if (currentTimer > 0f)
+            if (_currentTimer > 0f)
             {
-                currentTimer -= Time.deltaTime;
+                _currentTimer -= Time.deltaTime;
             }
             else 
             {
-                currentTimer = Timer;
+                _currentTimer = Timer;
                 visionRange.enabled = true;
                 mustAttack = false;
                 if (!seePlayer)
@@ -63,7 +70,7 @@ namespace EnemiesScripts
         private void OnTriggerStay2D(Collider2D collision)
         {
             if (collision.gameObject.tag == "Player") {
-                float dist = Vector3.Distance(distancePoint.transform.position, collision.gameObject.transform.position);
+                float dist = Vector3.Distance(_distancePoint.transform.position, collision.gameObject.transform.position);
                 if (dist < 2.3f)
                 {
                     mustPatrol = false;

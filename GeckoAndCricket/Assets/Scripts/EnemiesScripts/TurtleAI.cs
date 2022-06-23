@@ -1,14 +1,13 @@
-using System;
-using System.Threading;
 using BaseScripts;
-using PlayerScripts;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
-namespace EnemyScripts
+namespace EnemiesScripts
 {
-    public class Turtle : BaseCharacter
+    public class TurtleAI : BaseCharacter
     {
+        // ReSharper disable ConvertToConstant.Global
+        // ReSharper disable FieldCanBeMadeReadOnly.Global
+        // ReSharper disable MemberCanBePrivate.Global
         [Header("Turtle Properties:")]
         public float playerLaunchForce = 3f;
         public int jumpsToFlip = 2;
@@ -16,6 +15,9 @@ namespace EnemyScripts
         [Header("Turtle Colliders:")]
         public Collider2D bottomCollider;
         public Collider2D topCollider;
+        // ReSharper restore ConvertToConstant.Global
+        // ReSharper restore FieldCanBeMadeReadOnly.Global
+        // ReSharper restore MemberCanBePrivate.Global
         
         // Turtle private variables:
         private Vector3 _localPosition;

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using EnemiesScripts;
 using UnityEngine;
 
 public class BulletEvent : MonoBehaviour

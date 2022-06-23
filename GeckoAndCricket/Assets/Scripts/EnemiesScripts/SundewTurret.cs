@@ -1,28 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using BaseScripts;
 
-public class SundewTurret : MonoBehaviour
+namespace EnemiesScripts
 {
-    [SerializeField] GameObject bulletPrefab;
-    [SerializeField] Transform mouthPosition;
-    static private float attackTimer = 1f;
-    private float currentAttackTime = attackTimer;
-    void Update()
+    public class SundewTurret : MonoBehaviour
     {
-        if (currentAttackTime <= 0f)
+        // Private variables:
+        [SerializeField] private GameObject _bulletPrefab;
+        [SerializeField] private Transform _mouthPosition;
+
+        private const float AttackTimer = 1f;
+        private float currentAttackTime = AttackTimer;
+
+        private void Update()
         {
-            currentAttackTime = attackTimer;
-            Shooting();
+            if (currentAttackTime <= 0f)
+            {
+                currentAttackTime = AttackTimer;
+                Shooting();
+            }
+            else {
+                currentAttackTime -= Time.deltaTime;
+            }
         }
-        else {
-            currentAttackTime -= Time.deltaTime;
+        private void Shooting() 
+        {
+            GameObject enemyBulletClone=Instantiate(_bulletPrefab, _mouthPosition);
+            Rigidbody2D rb = enemyBulletClone.GetComponent<Rigidbody2D>();
+            rb.velocity = _mouthPosition.right * 10f;
         }
-    }
-    void Shooting() {
-        GameObject enemyBulletClone=Instantiate(bulletPrefab, mouthPosition);
-        Rigidbody2D rb = enemyBulletClone.GetComponent<Rigidbody2D>();
-        rb.velocity = mouthPosition.right * 10f;
     }
 }
