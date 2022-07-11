@@ -313,6 +313,10 @@ namespace BaseScripts
                 IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
         }
         
+        public int GetFloorType() 
+		{
+            return _floorType;
+        }
         #endregion
         
         #region Movement
@@ -364,7 +368,7 @@ namespace BaseScripts
         
         public void Jump()
         {
-            Vector2 jump = new Vector2(0f, jumpForce);
+            Vector2 jump = new Vector2(Rigidbody.velocity.x, jumpForce);
             Rigidbody.velocity = jump;
         }
         

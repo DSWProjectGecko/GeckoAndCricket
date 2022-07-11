@@ -40,6 +40,12 @@ namespace PlayerScripts
         public int staminaDegradationTime = 1;
         // Roll
         public bool isRolling;
+        // Grapple
+        public bool isGrappled;
+        private static float grappleBarTimer=0.01f;
+        private float currentGrappleBarTimer=grappleBarTimer;
+        public Canvas grappleCanvas;
+        public Slider grapple;
 
         [Header("Player input:")] 
         public KeyCode climbKey = KeyCode.X;
@@ -444,7 +450,38 @@ namespace PlayerScripts
         }
 
         private DebugUtility.DebugUtility _debug;
-        #endif
+#endif
+        #endregion
+
+        #region Actions
+        void grappleEscape() {
+            if (grappleCanvas.enabled == false) {
+                grappleCanvas.enabled = true;
+            }
+            if (Input.GetKeyDown(KeyCode.Z)) {
+                grapple.value += 2f;
+                if (grapple.value == grapple.maxValue) {
+                    Transform enemy = this.gameObject.transform.Find("GrapplePosition").transform.Find("Frog");
+                    enemy.gameObject.GetComponent<Rigidbody2D>().isKinematic = false;
+                    enemy.gameObject.GetComponent<FrogAI>().movementSpeed *=-1;
+                    enemy.gameObject.GetComponent<FrogAI>().Move(enemy.gameObject.GetComponent<FrogAI>().movementSpeed*1.5f, enemy.gameObject.GetComponent<Rigidbody2D>().velocity.y);
+                    enemy.gameObject.GetComponent<FrogAI>().grapplingPlayer = false;
+                    enemy.gameObject.GetComponent<BoxCollider2D>().isTrigger = false;
+                    enemy.parent=null;
+                    grapple.value = 0f;
+                    isGrappled = false;
+                    grappleCanvas.enabled = false;
+                }
+            }
+            if (grapple.value > 0f) {
+                currentGrappleBarTimer -= Time.deltaTime;
+                if (currentGrappleBarTimer <= 0f) {
+                    currentGrappleBarTimer = grappleBarTimer;
+                    grapple.value -= 0.2f;
+                }
+            }
+
+        }
         #endregion
 
         #region Unity
@@ -452,6 +489,7 @@ namespace PlayerScripts
         {
             base.Awake();
             BaseWorld.Player = gameObject;
+            isGrappled = false;
         }
         private void Start()
         {
@@ -463,6 +501,9 @@ namespace PlayerScripts
             // Ustawia grawitację świata na taką jaką ma gracz.
             BaseWorld.World.GetGravityScale() = Rigidbody.gravityScale;
             _stamina = maxStamina;
+            grapple.maxValue = 10f;
+            grapple.value = 0f;
+            grappleCanvas.enabled = false;
         }
 
         private void Update()
@@ -476,11 +517,18 @@ namespace PlayerScripts
             bool isTouchingStuff = !IsGrounded && (IsTouchingWall || IsTouchingCeiling || IsAttachedToRope);
             if (!_isCoroutineRunning && ((_stamina  < maxStamina && IsGrounded) || isTouchingStuff))
                 StartCoroutine(Stamina(isTouchingStuff));
-            Jump();
-            Stomp(isTouchingStuff);
-            Swing();
-            Roll();
-            DetachRopeTimer();
+            if (!isGrappled)
+            {
+                Jump();
+                Stomp(isTouchingStuff);
+                Swing();
+                Roll();
+                DetachRopeTimer();
+            }
+            else
+            {
+                grappleEscape();
+            }
             
             #if DEBUG
             if (showFPS)
@@ -497,7 +545,10 @@ namespace PlayerScripts
         private new void FixedUpdate()
         {
             base.FixedUpdate();
-            Move();
+            if (!isGrappled)
+            {
+                Move();
+            }
         }
         #endregion
     }
