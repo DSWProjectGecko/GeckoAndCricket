@@ -295,6 +295,9 @@ namespace BaseScripts
 
             return _floorType;
         }
+        public int GetFloorType() {
+            return _floorType;
+        }
         #endregion
         
         #region Movement
@@ -346,7 +349,7 @@ namespace BaseScripts
         
         protected void Jump()
         {
-            Vector2 jump = new Vector2(0f, jumpForce);
+            Vector2 jump = new Vector2(Rigidbody.velocity.x, jumpForce);
             Rigidbody.velocity = jump;
         }
         
