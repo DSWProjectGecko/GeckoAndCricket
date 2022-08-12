@@ -19,7 +19,7 @@ public class FrogAI : BaseCharacter
     // Update is called once per frame
     void Update()
     {
-        if (IsTouchingWall && IsGrounded || GetFloorType() == BaseWorld.FloorType.Lava)
+        if (IsTouchingWall && IsGrounded || FloorType == BaseWorld.FloorType.Lava)
         {
             Flip();
         }

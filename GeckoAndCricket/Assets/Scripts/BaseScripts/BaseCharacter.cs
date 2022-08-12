@@ -312,11 +312,6 @@ namespace BaseScripts
             if (ceilingCollider != null)
                 IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
         }
-        
-        public int GetFloorType() 
-		{
-            return _floorType;
-        }
         #endregion
         
         #region Movement
