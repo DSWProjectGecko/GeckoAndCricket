@@ -37,9 +37,10 @@ namespace BaseScripts
         protected Rigidbody2D Rigidbody;
         protected HingeJoint2D HingeJoint;
 
-        // Character private collision fields
-        private int _floorType;
-        private int _wallType;
+        // Character protected collision fields
+        // TODO: Not sure about using ints instead of enums
+        protected int FloorType;
+        protected int WallType;
 
         [Header("Character flags:")] 
         public bool isFacingRight = true;
@@ -201,13 +202,14 @@ namespace BaseScripts
         {
             foreach (int? type in BaseWorld.WallType.GetSurfaceTypes())
             {
+                // TODO: We shouldn't check that everytime.
                 if (type == null)
                     continue;
 
                 if (!Physics2D.OverlapCircle(wallCollider.position, wallCheckSize, (int) type)) 
                     continue;
                 
-                _wallType = (int) type;
+                WallType = (int) type;
                 return true;
             }
             
@@ -218,12 +220,13 @@ namespace BaseScripts
         {
             foreach (int? type in BaseWorld.FloorType.GetSurfaceTypes())
             {
+                // TODO: We shouldn't check that everytime.
                 if (type == null)
                     continue;
                 if (!Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, (int) type))
                     continue;
                 
-                _floorType = (int) type;
+                FloorType = (int) type;
                 return true;
             }
 
@@ -232,14 +235,14 @@ namespace BaseScripts
         
         public int InteractWithWallType()
         {
-            if (_wallType == BaseWorld.WallType.Lava)
+            if (WallType == BaseWorld.WallType.Lava)
             {
                 Rigidbody.transform.localPosition = resetPosition;
                 _wasTouchingDifferentWall = true;
                 //Debug.Log("Lava");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (_wallType == BaseWorld.WallType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            else if (WallType == BaseWorld.WallType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
             {
                 Rigidbody.gravityScale = 0f;
                 movementSpeed = BaseWorld.World.honeySpeed;
@@ -247,13 +250,13 @@ namespace BaseScripts
                 //Debug.Log("Honey");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (_wallType == BaseWorld.WallType.Ice && Rigidbody.gravityScale != 0f)
+            else if (WallType == BaseWorld.WallType.Ice && Rigidbody.gravityScale != 0f)
             {
                 Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
                 _wasTouchingDifferentWall = true;
                 //Debug.Log("Ice");
             }
-            else if (_wallType == BaseWorld.WallType.Normal)
+            else if (WallType == BaseWorld.WallType.Normal)
             {
                 _wasTouchingDifferentWall = false;
                 movementSpeed = _tempMovementSpeed;
@@ -261,31 +264,31 @@ namespace BaseScripts
                 //Debug.Log("Normal");
             }
             
-            return _wallType;
+            return WallType;
         }
         
         public int InteractWithFloorType()
         {
-            if (_floorType == BaseWorld.FloorType.Lava)
+            if (FloorType == BaseWorld.FloorType.Lava)
             {
                 Rigidbody.transform.localPosition = resetPosition;
                 //Debug.Log("Lava");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (_floorType == BaseWorld.FloorType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            else if (FloorType == BaseWorld.FloorType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
             {
                 _wasTouchingDifferentFloor = true;
                 movementSpeed = BaseWorld.World.honeySpeed;
                 //Debug.Log("Honey");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (_floorType == BaseWorld.FloorType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
+            else if (FloorType == BaseWorld.FloorType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
             {
                 _wasTouchingDifferentFloor = true;
                 movementSpeed = BaseWorld.World.iceSpeed;
                 //Debug.Log("Ice");
             }
-            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && _floorType == BaseWorld.FloorType.Normal)
+            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && FloorType == BaseWorld.FloorType.Normal)
             {
                 _wasTouchingDifferentFloor = false;
                 _wasTouchingDifferentWall = false;
@@ -293,7 +296,7 @@ namespace BaseScripts
                 //Debug.Log("Normal");
             }
 
-            return _floorType;
+            return FloorType;
         }
         
         /// <summary>
@@ -301,6 +304,7 @@ namespace BaseScripts
         /// </summary>
         public void CheckCollision()
         {
+            // TODO: This shouldn't check for null every time the function is called.
             if (groundCollider != null)
                 IsGrounded = CheckFloorCollision();
             if (wallCollider != null)
