@@ -1,90 +1,101 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using BaseScripts;
-using BaseScripts.SurfaceTypes;
 using PlayerScripts;
+using UnityEngine;
 
-public class FrogAI : BaseCharacter
+namespace EnemiesScripts
 {
-    private bool mustPatrol;
-    public bool mustTurn;
-    public bool grapplingPlayer;
-    // Start is called before the first frame update
-    void Start()
+    public class FrogAI : BaseCharacter
     {
-        mustPatrol = true;
-        grapplingPlayer = false;
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        if (IsTouchingWall && IsGrounded || FloorType == BaseWorld.FloorType.Lava)
+        // public flags:
+        public bool mustTurn;
+        public bool grapplingPlayer;
+        
+        // private flags:
+        private bool _mustPatrol;
+
+        #region FrogAI
+        private void Patrol() 
         {
-            Flip();
-        }
-        if (mustPatrol)
-        {
-            Patrol();
-        }
-        else {
-            Attack();
-        }
-    }
-    void Patrol() {
-        float x = movementSpeed;
-        float y = Mathf.Abs(jumpForce/2);
-        if (IsGrounded)
-        {
-            Move(x,y);
+            float x = movementSpeed;
+            float y = Mathf.Abs(jumpForce/2);
+            
+            if (isGrounded)
+                Move(ref x, ref y);
         }
 
-    }
-    void Attack() {
-        float x = movementSpeed*3;
-        float y = Mathf.Abs(jumpForce / 1.5f);
-        if (IsGrounded && !grapplingPlayer)
+        private void Attack() 
         {
-            Move(x,y);
+            float x = movementSpeed*3;
+            float y = Mathf.Abs(jumpForce / 1.5f);
+            
+            if (isGrounded && !grapplingPlayer)
+                Move(ref x, ref y);
         }
-    }
-    public void Move(float x,float y){
-        base.Move(ref x, ref y);
-    }
-    void Flip()
-    {
-        mustPatrol = false;
-        movementSpeed *= -1;
-        mustPatrol = true;
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player")) {
-            mustPatrol = false;
-        }
-    }
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
+        public void Move(float x,float y)
         {
-            mustPatrol = true;
+            base.Move(ref x, ref y);
+        }
+
+        private void Flip()
+        {
+            _mustPatrol = false;
+            movementSpeed *= -1;
+            _mustPatrol = true;
+        }
+        #endregion
+
+        #region Unity
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (collision.CompareTag("Player"))
+                _mustPatrol = false;
+        }
+        
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            if (!collision.CompareTag("Player")) return;
+            
+            _mustPatrol = true;
             grapplingPlayer = false;
         }
-    }
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Player")) {
+        
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (!collision.gameObject.CompareTag("Player")) return;
+            
             grapplingPlayer = true;
             gameObject.GetComponent<BoxCollider2D>().isTrigger = true;
             Transform grapple = collision.gameObject.transform.Find("GrapplePosition").transform;
-            this.transform.parent = grapple;
-            this.transform.position = grapple.position;
-            Rigidbody.isKinematic = true;
-            Rigidbody.velocity = new Vector2(0f, 0f);
+            
+            Transform frogTransform = transform;
+            
+            frogTransform.parent = grapple;
+            frogTransform.position = grapple.position;
+            characterRigidbody.isKinematic = true;
+            characterRigidbody.velocity = new Vector2(0f, 0f);
             collision.gameObject.GetComponent<Player>().isGrappled = true;
-
-
-
         }
+        
+        private void Start()
+        {
+            _mustPatrol = true;
+            grapplingPlayer = false;
+        }
+
+        private void Update()
+        {
+            if (isTouchingWall && isGrounded || floorType == BaseWorld.floorType.Lava)
+            {
+                Flip();
+            }
+            if (_mustPatrol)
+            {
+                Patrol();
+            }
+            else {
+                Attack();
+            }
+        }
+        #endregion
     }
 }

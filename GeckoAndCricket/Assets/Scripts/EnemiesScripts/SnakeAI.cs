@@ -1,5 +1,6 @@
 using BaseScripts;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace EnemiesScripts
 {
@@ -12,15 +13,18 @@ namespace EnemiesScripts
         public LayerMask groundLayer;
         
         // Private variables:
-        [SerializeField] 
-        private GameObject _distancePoint;
+        [FormerlySerializedAs("_distancePoint")] [SerializeField] 
+        private GameObject distancePoint;
         
         //Roboczy timer na czas braku animacji do ataku
         private const float Timer = 2f;
         private const float RecoveryTimer = 1f;
         
         private float _currentTimer = Timer;
+        
+#pragma warning disable CS0414
         private float _currentRecoveryTimer = RecoveryTimer;
+#pragma warning restore CS0414
         
         // Public flags:
         public bool seePlayer;
@@ -30,7 +34,7 @@ namespace EnemiesScripts
         protected bool mustPatrol;
         protected bool mustAttack;
 
-        #region AI
+        #region SnakeAI
         protected void Patrol() 
         {
             float x;
@@ -39,7 +43,7 @@ namespace EnemiesScripts
             else
                 x = movementSpeed;
             
-            float y = Rigidbody.velocity.y;
+            float y = characterRigidbody.velocity.y;
             Move(ref x, ref y);
         }
         protected void Flip() 
@@ -69,23 +73,22 @@ namespace EnemiesScripts
         #region Collision
         private void OnTriggerStay2D(Collider2D collision)
         {
-            if (collision.gameObject.tag == "Player") {
-                float dist = Vector3.Distance(_distancePoint.transform.position, collision.gameObject.transform.position);
-                if (dist < 2.3f)
-                {
-                    mustPatrol = false;
-                    mustAttack = true;
-                }
-            }
+            if (!collision.gameObject.CompareTag("Player")) return;
+            float dist = Vector3.Distance(distancePoint.transform.position, collision.gameObject.transform.position);
+            
+            if (!(dist < 2.3f)) return;
+            
+            mustPatrol = false;
+            mustAttack = true;
         }
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (collision.gameObject.tag == "Player")
+            if (collision.gameObject.CompareTag("Player"))
                 seePlayer = true;
         }
         private void OnTriggerExit2D(Collider2D collision)
         {
-            if (collision.gameObject.tag == "Player")
+            if (collision.gameObject.CompareTag("Player"))
                 seePlayer = false;
         }
         #endregion
@@ -100,7 +103,7 @@ namespace EnemiesScripts
     
         protected void Update()
         {
-            if (mustTurn || IsTouchingWall) 
+            if (mustTurn || isTouchingWall) 
             {
                 Flip();
             }
