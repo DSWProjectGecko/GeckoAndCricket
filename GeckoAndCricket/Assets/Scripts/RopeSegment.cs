@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class RopeSegment : MonoBehaviour
@@ -17,7 +15,8 @@ public class RopeSegment : MonoBehaviour
             float spriteBottom = above.GetComponent<SpriteRenderer>().bounds.size.y;
             GetComponent<HingeJoint2D>().connectedAnchor = new Vector2(0, spriteBottom * -1);
         }
-        else {
+        else 
+        {
             GetComponent<HingeJoint2D>().connectedAnchor = new Vector2(0, 0);
         }
     }

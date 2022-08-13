@@ -16,20 +16,20 @@ namespace EnemiesScripts
         // Private flags;
         private bool _isGoingDown;
 
-        #region AI
+        #region MillipedeAI
 
         private new void Patrol()
         {
             float xSpeed, ySpeed;
             if (seePlayer)
             {
-                ySpeed = IsTouchingWall ? verticalMovementSpeed * 2.0f : 0.0f;
-                xSpeed = (IsGrounded || IsTouchingCeiling) && !IsTouchingWall ? movementSpeed * 2.0f : 0.0f;
+                ySpeed = isTouchingWall ? verticalMovementSpeed * 2.0f : 0.0f;
+                xSpeed = (isGrounded || isTouchingCeiling) && !isTouchingWall ? movementSpeed * 2.0f : 0.0f;
             }
             else
             {
-                ySpeed = IsTouchingWall ? verticalMovementSpeed : 0.0f;
-                xSpeed = (IsGrounded || IsTouchingCeiling) && !IsTouchingWall ? movementSpeed : 0.0f;
+                ySpeed = isTouchingWall ? verticalMovementSpeed : 0.0f;
+                xSpeed = (isGrounded || isTouchingCeiling) && !isTouchingWall ? movementSpeed : 0.0f;
             }
             
             Move(ref xSpeed, ref ySpeed);
@@ -66,13 +66,13 @@ namespace EnemiesScripts
 
             if (!mustPatrol 
                 || (!IsGroundedFlag && !IsTouchingCeilingFlag)
-                || (FloorType == BaseWorld.FloorType.Lava && mustTurn)
-                || verticalMovementSpeed < 0.0f && !IsGrounded) 
+                || (floorType == BaseWorld.floorType.Lava && mustTurn)
+                || verticalMovementSpeed < 0.0f && !isGrounded) 
                 return;
 
-            if ((!IsTouchingWall && Rigidbody.velocity.y != 0.0f && !_isGoingDown)
-                || (IsTouchingCeiling && IsTouchingWall)
-                || (IsGrounded && IsTouchingWall && verticalMovementSpeed < 0.0f))
+            if ((!isTouchingWall && characterRigidbody.velocity.y != 0.0f && !_isGoingDown)
+                || (isTouchingCeiling && isTouchingWall)
+                || (isGrounded && isTouchingWall && verticalMovementSpeed < 0.0f))
             {
                 verticalMovementSpeed = -verticalMovementSpeed;
                 _isGoingDown = !_isGoingDown;
@@ -81,10 +81,10 @@ namespace EnemiesScripts
             
             
             if (Math.Abs(transform.position.x) > Math.Abs(_startPosition.x + patrolDistance.x)
-                     || FloorType == BaseWorld.FloorType.Lava
+                     || floorType == BaseWorld.floorType.Lava
                      || (!Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, groundLayer) && IsGroundedFlag)
                      || Math.Abs(transform.position.y) > Math.Abs(_startPosition.y + patrolDistance.y)
-                     || verticalMovementSpeed < 0.0f && !IsGrounded)
+                     || verticalMovementSpeed < 0.0f && !isGrounded)
             {
                 mustTurn = true;
             }
@@ -94,7 +94,7 @@ namespace EnemiesScripts
             }
 
 
-            Rigidbody.gravityScale = IsGroundedFlag ? BaseWorld.World.GetGravityScale() : 0.0f;
+            characterRigidbody.gravityScale = IsGroundedFlag ? BaseWorld.world.GetGravityScale() : 0.0f;
         }
         #endregion
     }

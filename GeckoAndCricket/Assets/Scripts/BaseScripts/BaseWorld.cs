@@ -19,10 +19,10 @@ namespace BaseScripts
         public float gravityMultiplier = 1f;
         
         // Public:
-        public static BaseWorld World;
-        public static BaseSurfaceTypes FloorType;
-        public static BaseSurfaceTypes WallType;
-        public static GameObject Player;
+        public static BaseWorld world;
+        public static BaseSurfaceTypes floorType;
+        public static BaseSurfaceTypes wallType;
+        public static GameObject player;
 
         // Private:
         private float _gravityScale;
@@ -34,13 +34,13 @@ namespace BaseScripts
 
         private void Awake()
         {
-            if (World == null)
+            if (world == null)
             {
-                World = this;
+                world = this;
             }
 
-            FloorType ??= new FloorTypes(floorLayers);
-            WallType ??= new WallTypes(wallLayers);
+            floorType ??= new FloorTypes(floorLayers);
+            wallType ??= new WallTypes(wallLayers);
             
         }
     }

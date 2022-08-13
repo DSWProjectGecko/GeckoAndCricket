@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 using Directory = System.IO.Directory;
@@ -20,8 +21,7 @@ namespace BaseScripts
         public float jumpForce = 12f;
         public float stompForce = 2f;
         public float pushForce = 7f;
-        public int maxJumps = 1;
-        
+
         // Character private movement fields:
         private float _tempMovementSpeed;
 
@@ -34,13 +34,13 @@ namespace BaseScripts
         public float ceilingCheckSize = 0.2f;
 
         // Character protected fields:
-        protected Rigidbody2D Rigidbody;
-        protected HingeJoint2D HingeJoint;
+        protected Rigidbody2D characterRigidbody;
+        protected HingeJoint2D characterHingeJoint;
 
         // Character protected collision fields
         // TODO: Not sure about using ints instead of enums
-        protected int FloorType;
-        protected int WallType;
+        protected int floorType;
+        protected int wallType;
 
         [Header("Character flags:")] 
         public bool isFacingRight = true;
@@ -48,23 +48,26 @@ namespace BaseScripts
         public bool isFlippedHorizontally;
 
         // Character protected flags:
-        protected bool IsGrounded = true;
-        protected bool IsTouchingWall;
-        protected bool IsTouchingCeiling;
-        protected bool IsAttachedToRope;
+        protected bool isGrounded = true;
+        protected bool isTouchingWall;
+        protected bool isTouchingCeiling;
+        protected bool isAttachedToRope;
         
         // Character private flags:
         private bool _wasTouchingDifferentFloor;
         private bool _wasTouchingDifferentWall;
+        
+        // Available collision functions:
+        private readonly List<Action> _collisionFunctions = new List<Action>();
 
         [Header("Debug BaseCharacter:")] 
         public Vector3 resetPosition;
 #pragma warning restore 8618
 
         #region Getters and Setters
-        public bool IsGroundedFlag { get => IsGrounded; set => IsGrounded = value; }
-        public bool IsTouchingWallFlag { get => IsTouchingWall; set => IsTouchingWall = value; }
-        public bool IsTouchingCeilingFlag { get => IsTouchingCeiling; set => IsTouchingCeiling = value; }
+        public bool IsGroundedFlag { get => isGrounded; set => isGrounded = value; }
+        public bool IsTouchingWallFlag { get => isTouchingWall; set => isTouchingWall = value; }
+        public bool IsTouchingCeilingFlag { get => isTouchingCeiling; set => isTouchingCeiling = value; }
 
         #endregion
 
@@ -77,7 +80,6 @@ namespace BaseScripts
         {
             Vector3 flip = body.localScale;
             flip.x *= -1;
-            //isFacingRight = !isFacingRight;
             body.localScale = flip;
 
             return isFlippedHorizontally = !isFlippedHorizontally;
@@ -129,78 +131,12 @@ namespace BaseScripts
         {
             body.localEulerAngles = new Vector3(xAngle, yAngle, zAngle);
         }
-        
-        /// <summary>
-        /// Rotates character sprite in x axis.
-        /// </summary>
-        /// <param name="angle">angle has to be in range from -360 to 360</param>
-        /// <returns>Returns new x angle.</returns>
-        public float RotateX(float angle)
-        {
-            if (angle < -360f || angle > 360f)
-                throw new ArgumentOutOfRangeException();
-            
-            return Rotate(angle, 0f, 0f).x;
-        }
-        
-        /// <summary>
-        /// Rotates character sprite in y axis.
-        /// </summary>
-        /// <param name="angle">angle has to be in range from -360 to 360</param>
-        /// <returns>Returns new y angle.</returns>
-        public float RotateY(float angle)
-        {
-            if (angle < -360f || angle > 360f)
-                throw new ArgumentOutOfRangeException();
-            
-            return Rotate(0f, angle, 0f).y;
-        }
-        
-        /// <summary>
-        /// Rotates character sprite in z axis.
-        /// </summary>
-        /// <param name="angle">angle has to be in range from -360 to 360</param>
-        /// <returns>Returns new z angle.</returns>
-        public float RotateZ(float angle)
-        {
-            if (angle < -360f || angle > 360f)
-                throw new ArgumentOutOfRangeException();
-            
-            return Rotate(0f, 0f, angle).z;
-        }
-
-        private Vector3 Rotate(float xAngle, float yAngle, float zAngle)
-        {
-            Vector3 currentRotation = body.localEulerAngles;
-
-            if (currentRotation.x > 359f || currentRotation.x < -359f)
-            {
-                currentRotation.x = 0f;
-            }
-            
-            if (currentRotation.y > 359f || currentRotation.y < -359f)
-            {
-                currentRotation.y = 0f;
-            }
-            
-            if (currentRotation.z > 359f || currentRotation.z < -359f)
-            {
-                currentRotation.z = 0f;
-            }
-
-            Vector3 newRotation = new Vector3(currentRotation.x + xAngle, currentRotation.y + yAngle,
-                                              currentRotation.z + zAngle);
-
-            body.localEulerAngles = newRotation;
-            
-            return newRotation;
-        }
         #endregion
         
         #region Collisions
-        private bool CheckWallCollision()
+        private void CheckWallCollision()
         {
-            foreach (int? type in BaseWorld.WallType.GetSurfaceTypes())
+            foreach (int? type in BaseWorld.wallType.GetSurfaceTypes())
             {
                 // TODO: We shouldn't check that everytime.
                 if (type == null)
@@ -209,16 +145,17 @@ namespace BaseScripts
                 if (!Physics2D.OverlapCircle(wallCollider.position, wallCheckSize, (int) type)) 
                     continue;
                 
-                WallType = (int) type;
-                return true;
+                wallType = (int) type;
+                isTouchingWall = true;
+                return;
             }
             
-            return false;
+            isTouchingWall = false;
         }
 
-        private bool CheckFloorCollision()
+        private void CheckFloorCollision()
         {
-            foreach (int? type in BaseWorld.FloorType.GetSurfaceTypes())
+            foreach (int? type in BaseWorld.floorType.GetSurfaceTypes())
             {
                 // TODO: We shouldn't check that everytime.
                 if (type == null)
@@ -226,77 +163,75 @@ namespace BaseScripts
                 if (!Physics2D.OverlapCircle(groundCollider.position, groundCheckSize, (int) type))
                     continue;
                 
-                FloorType = (int) type;
-                return true;
+                floorType = (int) type;
+                isGrounded = true;
+                return;
             }
 
-            return false;
+            isGrounded = false;
+        }
+
+        private void CheckCeilingCollision()
+        {
+            isTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.world.ceilingLayer);
         }
         
         public int InteractWithWallType()
         {
-            if (WallType == BaseWorld.WallType.Lava)
+            if (wallType == BaseWorld.wallType.Lava)
             {
-                Rigidbody.transform.localPosition = resetPosition;
+                characterRigidbody.transform.localPosition = resetPosition;
                 _wasTouchingDifferentWall = true;
-                //Debug.Log("Lava");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (WallType == BaseWorld.WallType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            else if (wallType == BaseWorld.wallType.Honey && movementSpeed != BaseWorld.world.honeySpeed) 
             {
-                Rigidbody.gravityScale = 0f;
-                movementSpeed = BaseWorld.World.honeySpeed;
+                characterRigidbody.gravityScale = 0f;
+                movementSpeed = BaseWorld.world.honeySpeed;
                 _wasTouchingDifferentWall = true;
-                //Debug.Log("Honey");
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (WallType == BaseWorld.WallType.Ice && Rigidbody.gravityScale != 0f)
+            else if (wallType == BaseWorld.wallType.Ice && characterRigidbody.gravityScale != 0f)
             {
-                Rigidbody.gravityScale = BaseWorld.World.GetGravityScale();
+                characterRigidbody.gravityScale = BaseWorld.world.GetGravityScale();
                 _wasTouchingDifferentWall = true;
-                //Debug.Log("Ice");
             }
-            else if (WallType == BaseWorld.WallType.Normal)
+            else if (wallType == BaseWorld.wallType.Normal)
             {
                 _wasTouchingDifferentWall = false;
                 movementSpeed = _tempMovementSpeed;
-                Rigidbody.gravityScale = 0f;
-                //Debug.Log("Normal");
+                characterRigidbody.gravityScale = 0f;
             }
             
-            return WallType;
+            return wallType;
         }
         
         public int InteractWithFloorType()
         {
-            if (FloorType == BaseWorld.FloorType.Lava)
+            if (floorType == BaseWorld.floorType.Lava)
             {
-                Rigidbody.transform.localPosition = resetPosition;
-                //Debug.Log("Lava");
+                characterRigidbody.transform.localPosition = resetPosition;
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (FloorType == BaseWorld.FloorType.Honey && movementSpeed != BaseWorld.World.honeySpeed) 
+            else if (floorType == BaseWorld.floorType.Honey && movementSpeed != BaseWorld.world.honeySpeed) 
             {
                 _wasTouchingDifferentFloor = true;
-                movementSpeed = BaseWorld.World.honeySpeed;
-                //Debug.Log("Honey");
+                movementSpeed = BaseWorld.world.honeySpeed;
             }
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            else if (FloorType == BaseWorld.FloorType.Ice && movementSpeed != BaseWorld.World.iceSpeed)
+            else if (floorType == BaseWorld.floorType.Ice && movementSpeed != BaseWorld.world.iceSpeed)
             {
                 _wasTouchingDifferentFloor = true;
-                movementSpeed = BaseWorld.World.iceSpeed;
-                //Debug.Log("Ice");
+                movementSpeed = BaseWorld.world.iceSpeed;
             }
-            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && FloorType == BaseWorld.FloorType.Normal)
+            else if ((_wasTouchingDifferentFloor || _wasTouchingDifferentWall) && floorType == BaseWorld.floorType.Normal)
             {
                 _wasTouchingDifferentFloor = false;
                 _wasTouchingDifferentWall = false;
                 movementSpeed = _tempMovementSpeed;
-                //Debug.Log("Normal");
             }
 
-            return FloorType;
+            return floorType;
         }
         
         /// <summary>
@@ -304,33 +239,12 @@ namespace BaseScripts
         /// </summary>
         public void CheckCollision()
         {
-            // TODO: This shouldn't check for null every time the function is called.
-            if (groundCollider != null)
-                IsGrounded = CheckFloorCollision();
-            if (wallCollider != null)
-                IsTouchingWall = CheckWallCollision();
-            if (ceilingCollider != null)
-                IsTouchingCeiling = Physics2D.OverlapCircle(ceilingCollider.position, ceilingCheckSize, BaseWorld.World.ceilingLayer);
+            foreach (Action? action in _collisionFunctions)
+                action();
         }
         #endregion
         
         #region Movement
-        /// <summary>
-        /// Moves character
-        /// </summary>
-        /// <param name="direction">Argument takes a reference to Vector2 object.</param>
-        public void Move(ref Vector2 direction)
-        {
-            if (!IsAttachedToRope)
-            {
-                Rigidbody.velocity = direction;
-            }
-            if ((direction.x > 0 && !isFacingRight) || (direction.x < 0 && isFacingRight))
-                isFacingRight = !FlipHorizontally();
-            if ((IsTouchingCeiling && !IsGrounded && !isFlippedVertically)||(!IsTouchingCeiling && isFlippedVertically))
-                FlipVertically();
-        }
-
         /// <summary>
         /// Moves character.
         /// </summary>
@@ -338,10 +252,10 @@ namespace BaseScripts
         /// <param name="y">Argument takes a reference to float y value.</param>
         public void Move(ref float x, ref float y)
         {
-            Rigidbody.velocity = new Vector2(x, y);
+            characterRigidbody.velocity = new Vector2(x, y);
             if ((x > 0 && !isFacingRight) || (x < 0 && isFacingRight))
                 isFacingRight = !FlipHorizontally();
-            if ((IsTouchingCeiling && !IsGrounded && !isFlippedVertically)||(!IsTouchingCeiling && isFlippedVertically))
+            if ((isTouchingCeiling && !isGrounded && !isFlippedVertically)||(!isTouchingCeiling && isFlippedVertically))
                 FlipVertically();
         }
 
@@ -351,26 +265,26 @@ namespace BaseScripts
         /// <param name="x">Argument takes a reference to float x value.</param>
         /// <param name="y">Argument takes a reference to float y value.</param>
         /// <param name="direction">Argument takes a reference to float direction value</param>
-        public void Move(ref float x, ref float y, float direction)
+        public void Move(ref float x, ref float y, ref float direction)
         {
-            Rigidbody.AddForce(x * Vector2.right);
-            Rigidbody.velocity = new Vector2(Rigidbody.velocity.x, y);
+            characterRigidbody.AddForce(x * Vector2.right);
+            characterRigidbody.velocity = new Vector2(characterRigidbody.velocity.x, y);
             if ((direction > 0.01f && !isFacingRight && isFlippedHorizontally) || (direction < 0f && isFacingRight && !isFlippedHorizontally))
                 isFacingRight = !FlipHorizontally();
-            if ((IsTouchingCeiling && !IsGrounded && !isFlippedVertically)||(!IsTouchingCeiling && isFlippedVertically))
+            if ((isTouchingCeiling && !isGrounded && !isFlippedVertically)||(!isTouchingCeiling && isFlippedVertically))
                 FlipVertically();
         }
         
         public void Jump()
         {
-            Vector2 jump = new Vector2(Rigidbody.velocity.x, jumpForce);
-            Rigidbody.velocity = jump;
+            Vector2 jump = new Vector2(characterRigidbody.velocity.x, jumpForce);
+            characterRigidbody.velocity = jump;
         }
         
         public void Stomp() 
         {
             Vector2 stomp = new Vector2(0f, stompForce);
-            Rigidbody.velocity -= stomp;
+            characterRigidbody.velocity -= stomp;
         }
 
         #endregion
@@ -418,6 +332,7 @@ namespace BaseScripts
                 return;
             }
             
+            // ReSharper disable once UnusedVariable
             var template = new
             {
                 health, movementSpeed, jumpForce
@@ -431,25 +346,25 @@ namespace BaseScripts
         #if DEBUG
         public unsafe bool* GetIsGroundedPointer()
         {
-            fixed (bool* ptr = &IsGrounded)
+            fixed (bool* ptr = &isGrounded)
                 return ptr;
         }
 
         public unsafe bool* GetIsTouchingWallPointer()
         {
-            fixed (bool* ptr = &IsTouchingWall)
+            fixed (bool* ptr = &isTouchingWall)
                 return ptr;
         }
 
         public unsafe bool* GetIsTouchingCeilingPointer()
         {
-            fixed (bool* ptr = &IsTouchingCeiling)
+            fixed (bool* ptr = &isTouchingCeiling)
                 return ptr;
         }
 
         public unsafe bool* GetIsAttachedToRopePointer()
         {
-            fixed (bool* ptr = &IsAttachedToRope)
+            fixed (bool* ptr = &isAttachedToRope)
                 return ptr;
         }
 
@@ -465,9 +380,16 @@ namespace BaseScripts
 
         protected void Awake()
         {
-            Rigidbody = GetComponent<Rigidbody2D>();
-            HingeJoint = GetComponent<HingeJoint2D>();
+            characterRigidbody = GetComponent<Rigidbody2D>();
+            characterHingeJoint = GetComponent<HingeJoint2D>();
             _tempMovementSpeed = movementSpeed;
+            
+            if (groundCollider)
+                _collisionFunctions.Add(CheckFloorCollision);
+            if (wallCollider)
+                _collisionFunctions.Add(CheckWallCollision);
+            if (ceilingCollider)
+                _collisionFunctions.Add(CheckCeilingCollision);
         }
 
         protected void FixedUpdate()

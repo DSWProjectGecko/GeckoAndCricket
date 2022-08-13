@@ -1,32 +1,33 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace EnemiesScripts
 {
     public class SundewTurret : MonoBehaviour
     {
         // Private variables:
-        [SerializeField] private GameObject _bulletPrefab;
-        [SerializeField] private Transform _mouthPosition;
+        [FormerlySerializedAs("_bulletPrefab")] [SerializeField] private GameObject bulletPrefab;
+        [FormerlySerializedAs("_mouthPosition")] [SerializeField] private Transform mouthPosition;
 
         private const float AttackTimer = 1f;
-        private float currentAttackTime = AttackTimer;
+        private float _currentAttackTime = AttackTimer;
 
         private void Update()
         {
-            if (currentAttackTime <= 0f)
+            if (_currentAttackTime <= 0f)
             {
-                currentAttackTime = AttackTimer;
+                _currentAttackTime = AttackTimer;
                 Shooting();
             }
             else {
-                currentAttackTime -= Time.deltaTime;
+                _currentAttackTime -= Time.deltaTime;
             }
         }
         private void Shooting() 
         {
-            GameObject enemyBulletClone=Instantiate(_bulletPrefab, _mouthPosition);
+            GameObject enemyBulletClone=Instantiate(bulletPrefab, mouthPosition);
             Rigidbody2D rb = enemyBulletClone.GetComponent<Rigidbody2D>();
-            rb.velocity = _mouthPosition.right * 10f;
+            rb.velocity = mouthPosition.right * 10f;
         }
     }
 }

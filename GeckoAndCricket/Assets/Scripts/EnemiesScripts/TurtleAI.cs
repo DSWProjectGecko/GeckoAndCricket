@@ -5,9 +5,6 @@ namespace EnemiesScripts
 {
     public class TurtleAI : BaseCharacter
     {
-        // ReSharper disable ConvertToConstant.Global
-        // ReSharper disable FieldCanBeMadeReadOnly.Global
-        // ReSharper disable MemberCanBePrivate.Global
         [Header("Turtle Properties:")]
         public float playerLaunchForce = 3f;
         public int jumpsToFlip = 2;
@@ -15,10 +12,7 @@ namespace EnemiesScripts
         [Header("Turtle Colliders:")]
         public Collider2D bottomCollider;
         public Collider2D topCollider;
-        // ReSharper restore ConvertToConstant.Global
-        // ReSharper restore FieldCanBeMadeReadOnly.Global
-        // ReSharper restore MemberCanBePrivate.Global
-        
+
         // Turtle private variables:
         private Vector3 _localPosition;
         
@@ -45,7 +39,7 @@ namespace EnemiesScripts
             _canMove = false;
             
             FlipVertically();
-            Rigidbody.constraints = RigidbodyConstraints2D.FreezePosition;
+            characterRigidbody.constraints = RigidbodyConstraints2D.FreezePosition;
             bottomCollider.enabled = false;
             topCollider.enabled = false;
             
@@ -62,24 +56,24 @@ namespace EnemiesScripts
             if (_isTurningUpsideDown)
                 return;
             
-            BaseWorld.Player.GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, playerLaunchForce), ForceMode2D.Impulse);
+            BaseWorld.player.GetComponent<Rigidbody2D>().AddForce(new Vector2(0f, playerLaunchForce), ForceMode2D.Impulse);
         }
 
         private void InteractWithColliders()
         {
-            if (topCollider.IsTouching(BaseWorld.Player.GetComponent<CircleCollider2D>()) && !_isTouchingPlayer)
+            if (topCollider.IsTouching(BaseWorld.player.GetComponent<CircleCollider2D>()) && !_isTouchingPlayer)
             {
                 _isTouchingPlayer = true;
-                BaseWorld.Player.GetComponent<BaseCharacter>().IsGroundedFlag = true;
+                BaseWorld.player.GetComponent<BaseCharacter>().IsGroundedFlag = true;
                 Flip();
             }
-            else if (bottomCollider.IsTouching(BaseWorld.Player.GetComponent<CircleCollider2D>()))
+            else if (bottomCollider.IsTouching(BaseWorld.player.GetComponent<CircleCollider2D>()))
             {
                 Debug.Log("LaunchPlayer");
                 LaunchPlayer();
             }
-            else if (!bottomCollider.IsTouching(BaseWorld.Player.GetComponent<CircleCollider2D>()) &&
-                      !topCollider.IsTouching(BaseWorld.Player.GetComponent<CircleCollider2D>()) && _isTouchingPlayer)
+            else if (!bottomCollider.IsTouching(BaseWorld.player.GetComponent<CircleCollider2D>()) &&
+                      !topCollider.IsTouching(BaseWorld.player.GetComponent<CircleCollider2D>()) && _isTouchingPlayer)
                 _isTouchingPlayer = false;
         }
         
@@ -104,7 +98,7 @@ namespace EnemiesScripts
             if (Physics2D.OverlapPoint(new Vector2(_localPosition.x, _localPosition.y + 1.0f), LayerMask.NameToLayer("Player"))) 
                 return;
 
-            Rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
+            characterRigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
             bottomCollider.enabled = true;
             topCollider.enabled = true;
             _isTurningUpsideDown = false;

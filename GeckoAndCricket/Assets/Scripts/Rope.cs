@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Rope : MonoBehaviour
@@ -16,7 +14,8 @@ public class Rope : MonoBehaviour
     private void GenerateRope()
     {
         Rigidbody2D prevRb = hook;
-        for (int i = 0; i < numLinks; i++) {
+        for (int i = 0; i < numLinks; i++) 
+        {
             GameObject newSeg = Instantiate(prefSeg);
             newSeg.transform.parent = transform;
             newSeg.transform.position = transform.position;
